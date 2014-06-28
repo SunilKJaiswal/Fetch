@@ -18,8 +18,8 @@ namespace Fetch;
  * @package Fetch
  * @author  Robert Hafner <tedivm@tedivm.com>
  */
-class Message
-{
+class Message {
+
     /**
      * This is the connection/mailbox class that the email came from.
      *
@@ -41,6 +41,13 @@ class Message
      * @var resource
      */
     protected $imapStream;
+
+    /**
+     * This the raw version of the email message.
+     *
+     * @var string
+     */
+    protected $raw;
 
     /**
      * This as an object which contains header information for the message.
@@ -188,10 +195,10 @@ class Message
     public function __construct($messageUniqueId, Server $connection)
     {
         $this->imapConnection = $connection;
-        $this->mailbox        = $connection->getMailBox();
-        $this->uid            = $messageUniqueId;
-        $this->imapStream     = $this->imapConnection->getImapStream();
-        if($this->loadMessage() !== true)
+        $this->mailbox = $connection->getMailBox();
+        $this->uid = $messageUniqueId;
+        $this->imapStream = $this->imapConnection->getImapStream();
+        if ($this->loadMessage() !== true)
             throw new \RuntimeException('Message with ID ' . $messageUniqueId . ' not found.');
     }
 
@@ -205,13 +212,12 @@ class Message
 
         /* First load the message overview information */
 
-        if(!is_object($messageOverview = $this->getOverview()))
-
+        if (!is_object($messageOverview = $this->getOverview()))
             return false;
 
         $this->subject = isset($messageOverview->subject) ? $messageOverview->subject : null;
-        $this->date    = strtotime($messageOverview->date);
-        $this->size    = $messageOverview->size;
+        $this->date = strtotime($messageOverview->date);
+        $this->size = $messageOverview->size;
 
         foreach (self::$flagTypes as $flag)
             $this->status[$flag] = ($messageOverview->$flag == 1);
@@ -229,7 +235,7 @@ class Message
         if (isset($headers->bcc))
             $this->bcc = $this->processAddressObject($headers->bcc);
 
-        $this->from    = $this->processAddressObject($headers->from);
+        $this->from = $this->processAddressObject($headers->from);
         $this->replyTo = isset($headers->reply_to) ? $this->processAddressObject($headers->reply_to) : $this->from;
 
         /* Finally load the structure itself */
@@ -260,11 +266,25 @@ class Message
     {
         if ($forceReload || !isset($this->messageOverview)) {
             // returns an array, and since we just want one message we can grab the only result
-            $results               = imap_fetch_overview($this->imapStream, $this->uid, FT_UID);
+            $results = imap_fetch_overview($this->imapStream, $this->uid, FT_UID);
             $this->messageOverview = array_shift($results);
         }
 
         return $this->messageOverview;
+    }
+
+    /**
+     * This function returns teh raw version of the email as a strimg.
+     *
+     * @param bool $forceReload
+     * @return string
+     */
+    public function getRaw($forceReload = false)
+    {
+        if ($forceReload || !isset($this->raw)) {
+            $this->raw = imap_fetchheader($this->imapStream, $this->uid, FT_UID) . imap_body($this->imapStream, $this->uid, FT_UID);
+        }
+        return $this->raw;
     }
 
     /**
@@ -326,13 +346,12 @@ class Message
                 $output = nl2br($this->plaintextMessage);
 
                 return $output;
-
             } elseif (isset($this->htmlMessage)) {
                 return $this->htmlMessage;
             }
         } else {
             if (!isset($this->plaintextMessage) && isset($this->htmlMessage)) {
-                $output = preg_replace('/\<br(\s*)?\/?\>/i', PHP_EOL, trim($this->htmlMessage) );
+                $output = preg_replace('/\<br(\s*)?\/?\>/i', PHP_EOL, trim($this->htmlMessage));
                 $output = strip_tags($output);
 
                 return $output;
@@ -374,8 +393,7 @@ class Message
                     $set = true;
 
                 $outputString .= isset($address['name']) ?
-                    $address['name'] . ' <' . $address['address'] . '>'
-                    : $address['address'];
+                    $address['name'] . ' <' . $address['address'] . '>' : $address['address'];
             }
 
             return $outputString;
@@ -435,12 +453,11 @@ class Message
         $parameters = self::getParametersFromStructure($structure);
 
         if (isset($parameters['name']) || isset($parameters['filename'])) {
-            $attachment          = new Attachment($this, $structure, $partIdentifier);
+            $attachment = new Attachment($this, $structure, $partIdentifier);
             $this->attachments[] = $attachment;
         } elseif ($structure->type == 0 || $structure->type == 1) {
             $messageBody = isset($partIdentifier) ?
-                imap_fetchbody($this->imapStream, $this->uid, $partIdentifier, FT_UID)
-                : imap_body($this->imapStream, $this->uid, FT_UID);
+                imap_fetchbody($this->imapStream, $this->uid, $partIdentifier, FT_UID) : imap_body($this->imapStream, $this->uid, FT_UID);
 
             $messageBody = self::decode($messageBody, $structure->encoding);
 
@@ -472,7 +489,6 @@ class Message
         }
 
         if (isset($structure->parts)) { // multipart: iterate through each part
-
             foreach ($structure->parts as $partIndex => $part) {
                 $partId = $partIndex + 1;
 
@@ -579,7 +595,7 @@ class Message
         $outputAddresses = array();
         if (is_array($addresses))
             foreach ($addresses as $address) {
-                $currentAddress            = array();
+                $currentAddress = array();
                 $currentAddress['address'] = $address->mailbox . '@' . $address->host;
                 if (isset($address->personal))
                     $currentAddress['name'] = $address->personal;
@@ -691,4 +707,5 @@ class Message
 
         return $returnValue;
     }
+
 }
