@@ -297,7 +297,7 @@ class Message {
      * @param bool $forceReload
      * @return string
      */
-    public function getRawHeader($forceReload = false)
+    public function getRawHeaders($forceReload = false)
     {
         if ($forceReload || !isset($this->rawHeaders)) {
             $this->rawHeaders = imap_fetchheader($this->imapStream, $this->uid, FT_UID);
