@@ -43,11 +43,18 @@ class Message {
     protected $imapStream;
 
     /**
-     * This the raw version of the email message.
+     * This is the raw headers for the email
      *
      * @var string
      */
-    protected $raw;
+    protected $rawHeaders;
+
+    /**
+     * This the raw body of the email
+     *
+     * @var string
+     */
+    protected $rawBody;
 
     /**
      * This as an object which contains header information for the message.
@@ -281,10 +288,35 @@ class Message {
      */
     public function getRaw($forceReload = false)
     {
-        if ($forceReload || !isset($this->raw)) {
-            $this->raw = imap_fetchheader($this->imapStream, $this->uid, FT_UID) . imap_body($this->imapStream, $this->uid, FT_UID);
+        return $this->getRawHeaders() . $this->getRawBody();
+    }
+
+    /**
+     * This function returns the raw version of the email header
+     *
+     * @param bool $forceReload
+     * @return string
+     */
+    public function getRawHeader($forceReload = false)
+    {
+        if ($forceReload || !isset($this->rawHeaders)) {
+            $this->rawHeaders = imap_fetchheader($this->imapStream, $this->uid, FT_UID);
         }
-        return $this->raw;
+        return $this->rawHeaders;
+    }
+
+    /**
+     * This function returns the raw version of the email body
+     *
+     * @param bool $forceReload
+     * @return string
+     */
+    public function getRawBody($forceReload = false)
+    {
+        if ($forceReload || !isset($this->rawBody)) {
+            $this->rawBody = imap_body($this->imapStream, $this->uid, FT_UID);
+        }
+        return $this->rawBody;
     }
 
     /**
@@ -299,7 +331,7 @@ class Message {
     {
         if ($forceReload || !isset($this->headers)) {
             // raw headers (since imap_headerinfo doesn't use the unique id)
-            $rawHeaders = imap_fetchheader($this->imapStream, $this->uid, FT_UID);
+            $rawHeaders = $this->getRawHeader();
 
             // convert raw header string into a usable object
             $headerObject = imap_rfc822_parse_headers($rawHeaders);
@@ -457,7 +489,7 @@ class Message {
             $this->attachments[] = $attachment;
         } elseif ($structure->type == 0 || $structure->type == 1) {
             $messageBody = isset($partIdentifier) ?
-                imap_fetchbody($this->imapStream, $this->uid, $partIdentifier, FT_UID) : imap_body($this->imapStream, $this->uid, FT_UID);
+                imap_fetchbody($this->imapStream, $this->uid, $partIdentifier, FT_UID) : $this->getRawBody();
 
             $messageBody = self::decode($messageBody, $structure->encoding);
 
