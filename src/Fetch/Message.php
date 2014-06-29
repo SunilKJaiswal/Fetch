@@ -331,7 +331,7 @@ class Message {
     {
         if ($forceReload || !isset($this->headers)) {
             // raw headers (since imap_headerinfo doesn't use the unique id)
-            $rawHeaders = $this->getRawHeader();
+            $rawHeaders = $this->getRawHeaders();
 
             // convert raw header string into a usable object
             $headerObject = imap_rfc822_parse_headers($rawHeaders);
