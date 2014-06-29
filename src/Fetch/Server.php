@@ -18,8 +18,8 @@ namespace Fetch;
  * @package Fetch
  * @author  Robert Hafner <tedivm@tedivm.com>
  */
-class Server
-{
+class Server {
+
     /**
      * When SSL isn't compiled into PHP we need to make some adjustments to prevent soul crushing annoyances.
      *
@@ -290,7 +290,7 @@ class Server
             if (!imap_reopen($this->imapStream, $this->getServerString(), $this->options, 1))
                 throw new \RuntimeException(imap_last_error());
         } else {
-            $imapStream = imap_open($this->getServerString(), $this->username, $this->password, $this->options, 1);
+            $imapStream = imap_open($this->getServerString(), $this->username, $this->password, $this->options, 1, array('DISABLE_AUTHENTICATOR' => array('GSSAPI', 'NTLM')));
 
             if ($imapStream === false)
                 throw new \RuntimeException(imap_last_error());
@@ -364,10 +364,10 @@ class Server
         if ($numMessages < 1)
             return array();
 
-        $stream   = $this->getImapStream();
+        $stream = $this->getImapStream();
         $messages = array();
         for ($i = 1; $i <= $numMessages; $i++) {
-            $uid        = imap_uid($stream, $i);
+            $uid = imap_uid($stream, $i);
             $messages[] = new Message($uid, $this);
         }
 
@@ -428,9 +428,7 @@ class Server
     public function hasMailBox($mailbox)
     {
         return (boolean) imap_getmailboxes(
-            $this->getImapStream(),
-            $this->getServerString(),
-            $this->getServerSpecification() . $mailbox
+                $this->getImapStream(), $this->getServerString(), $this->getServerSpecification() . $mailbox
         );
     }
 
@@ -445,4 +443,5 @@ class Server
     {
         return imap_createmailbox($this->getImapStream(), $this->getServerSpecification() . $mailbox);
     }
+
 }
