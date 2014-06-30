@@ -740,4 +740,20 @@ class Message {
         return $returnValue;
     }
 
+    /**
+     * This function is used to retireve a custom header.
+     *
+     * @param $header
+     *
+     * @return string
+     */
+    public function getHeader($header)
+    {
+        $headers = $this->getRawHeaders();
+        if (preg_match("/^$header: (.+?(?:\r\n\s(?:.+?))*)\r\n/m", $headers, $matches)) {
+            return $matches[1];
+        }
+        return false;
+    }
+
 }
