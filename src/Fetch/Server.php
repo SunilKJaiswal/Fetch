@@ -439,7 +439,7 @@ class Server {
      */
     public function getMailBoxes()
     {
-        return imap_getmailboxes($this->getImapStream(), $this->getServerString());
+        return imap_getmailboxes($this->getImapStream(), $this->getServerString(), '*');
     }
 
     /**
