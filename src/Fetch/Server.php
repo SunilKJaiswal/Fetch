@@ -433,6 +433,16 @@ class Server {
     }
 
     /**
+     * returns a list of mailboxes.
+     *
+     * @return array
+     */
+    public function getMailBoxes()
+    {
+        return imap_getmailboxes($this->getImapStream(), $this->getServerString());
+    }
+
+    /**
      * Creates the given mailbox.
      *
      * @param $mailbox
