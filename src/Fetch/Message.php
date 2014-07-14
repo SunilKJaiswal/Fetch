@@ -630,7 +630,7 @@ class Message {
                 $currentAddress = array();
                 // For To: undisclosed-recipients:;
 
-                $currentAddress['address'] = (isset($address->host)) ? $address->mailbox . '@' . $address->host : $address->mailbox;
+                $currentAddress['address'] = (isset($address->host) and isset($address->mailbox)) ? $address->mailbox . '@' . $address->host : false;
                 if (isset($address->personal))
                     $currentAddress['name'] = $address->personal;
                 $outputAddresses[] = $currentAddress;
