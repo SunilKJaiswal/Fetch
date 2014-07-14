@@ -628,7 +628,9 @@ class Message {
         if (is_array($addresses))
             foreach ($addresses as $address) {
                 $currentAddress = array();
-                $currentAddress['address'] = $address->mailbox . '@' . $address->host;
+                // For To: undisclosed-recipients:;
+
+                $currentAddress['address'] = (isset($address->host)) ? $address->mailbox . '@' . $address->host : $address->mailbox;
                 if (isset($address->personal))
                     $currentAddress['name'] = $address->personal;
                 $outputAddresses[] = $currentAddress;
